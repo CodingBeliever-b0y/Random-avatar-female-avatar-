@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>今日随机头像</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      background: #f0f2f5;
+      padding: 40px;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+      font-size: 2em;
+    }
+    img {
+      max-width: 90%;
+      max-height: 600px;
+      border-radius: 12px;
+      margin: 20px 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 16px;
+      margin: 0 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .status {
+      color: #666;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>今日随机头像</h1>
+  <img id="randomAvatar" src="" alt="正在加载..." />
+
+  <br />
+  <button class="btn btn-primary" onclick="loadRandomImage()">换一张</button>
+  <button class="btn btn-secondary" onclick="shareImage()">分享这张头像</button>
+
+  <p class="status" id="status">点击按钮开始</p>
+
+  <script>
+    // 所有可能的扩展名（按常见程度排序）
+    const extensions = ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.bmp', '.tiff'];
+
+    // 图片编号范围：1 到 489
+    const min = 1;
+    const max = 489;
+
+    function loadRandomImage() {
+      const status = document.getElementById('status');
+      status.textContent = '正在寻找可用头像...';
+
+      let attempts = 0;
+      const maxRetries = 100; // 防止无限循环
+
+      function tryRandom() {
+        if (attempts >= maxRetries) {
+          status.textContent = '❌ 未能找到可用图片，请检查文件夹。';
+          return;
+        }
+
+        const num = Math.floor(Math.random() * (max - min + 1)) + min;
+
+        let tried = 0;
+        const nextExt = () => {
+          if (tried >= extensions.length) {
+            attempts++;
+            tryRandom(); // 换一个编号重试
+            return;
+          }
+
+          const ext = extensions[tried++];
+          const src = `image/${num}${ext}`;
+
+          const img = new Image();
+          img.onload = () => {
+            document.getElementById('randomAvatar').src = src;
+            status.textContent = `🎉 成功加载：${num}${ext}`;
+          };
+          img.onerror = nextExt; // 继续试下一个扩展名
+          img.src = src;
+        };
+
+        nextExt();
+      }
+
+      tryRandom();
+    }
+
+    function shareImage() {
+      const img = document.getElementById('randomAvatar');
+      if (!img.src || img.src === '') {
+        alert('还没有图片被加载');
+        return;
+      }
+
+      navigator.clipboard.writeText(img.src)
+        .then(() => alert('✅ 图片地址已复制到剪贴板！'))
+        .catch(err => {
+          console.error('复制失败:', err);
+          prompt('📋 复制以下链接:', img.src);
+        });
+    }
+
+    // 页面加载时自动显示一张
+    window.onload = loadRandomImage;
+  </script>
+
+</body>
+</html>
